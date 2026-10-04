@@ -19,7 +19,7 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 </style></head><body><main>
 <h1>TECLADO<span>//</span>HERO</h1><p class="sub">Toque as notas que caem. Funciona com o microfone, clicando nas teclas ou com o teclado do PC.</p>
 <div id="menu">
-<div class="card"><div class="row"><b>Modo:</b><button class="g on" data-mode="wait">Siga a música</button><button class="g" data-mode="fall">Cascata</button><button class="g" data-mode="free">Livre</button></div>
+<div class="card"><div class="row"><b>Modo:</b><button class="g" data-mode="learn">Lições</button><button class="g on" data-mode="wait">Siga a música</button><button class="g" data-mode="fall">Cascata</button><button class="g" data-mode="free">Livre</button></div>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="fsc" checked> Tela cheia ao começar</small></label>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="ao"> Aceitar a nota em qualquer oitava</small></label>
 <p class="m"><small class="m" id="mdesc">A música espera você tocar a nota certa. Ideal para aprender.</small></p>
@@ -27,7 +27,7 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 <label id="thw"><small class="m">Sensibilidade</small> <input id="thr" type="range" min=".002" max=".08" step=".001" value=".012"></label></div>
 <div class="row" style="margin-top:8px"><b>Tempo de antecedência:</b><input id="lk" type="range" min="2" max="8" step=".5" value="4"><small class="m" id="lkv">4 s</small></div><p><small class="m">Quanto maior, mais cedo a nota aparece e mais tempo você tem para achar a tecla. As notas descem mais devagar.</small></p>
 <p><small class="m" id="idesc">Aponte o microfone do PC para o alto-falante do teclado. Toque uma nota por vez. Teclas do PC, uma linha reta de 21 teclas brancas (3 oitavas): Tab Q W E R T Y U I O P ´ [ Enter Delete End PageDown 7 9 + e Enter do teclado numérico = Dó3 a Si5 (a tecla 8 do numérico é pulada; deixe o Num Lock ligado). Teclas pretas (♯) na fileira de cima: 1 2 4 5 6 8 9 - = Backspace Insert Home / * - (as do teclado numérico). Shift+tecla branca também faz o ♯.</small></p></div>
-<div class="card"><b>Escolha a música</b><div class="songs" id="songs" style="margin-top:10px"></div>
+<div class="card"><b>Escolha a música</b><div class="songs" id="songs" style="margin-top:10px"></div><div class="songs" id="lessons" style="margin-top:10px;display:none"></div>
 <p style="margin:14px 0 0"><button id="go" disabled>Começar</button> <label class="g" style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer">Importar MIDI<input id="mf" type="file" accept=".mid,.midi,.json" multiple hidden></label> <button class="g" id="ex" type="button">Exportar minhas músicas</button> <small class="m" id="err"></small></p></div></div>
 <div id="game" class="hide"><div id="gw"><canvas id="cv"></canvas><div class="hud"><b id="sc">0</b><span id="cb">COMBO 0</span><span id="oc" style="display:block;margin-top:4px"></span></div>
 <button class="g" id="rb" style="position:absolute;right:200px;top:10px;display:none">● Gravar</button><button class="g" id="fsb" style="position:absolute;right:78px;top:10px">⛶ Tela cheia</button><button class="g" id="quit" style="position:absolute;right:12px;top:10px">Sair</button></div></div>
@@ -47,6 +47,22 @@ const S=[["Brilha, Brilha, Estrelinha",[1,1,5,5,6,6,5,4,4,3,3,2,2,1,5,5,4,4,3,3,
 const mm=d=>60+SC[d-1];let mode="wait",inp="mic",sel=-1,G=null;
 const sg=$("songs");try{JSON.parse(localStorage.thSongs||"[]").forEach(x=>S.push(x))}catch(e){}
 function list(){sg.innerHTML="";S.forEach((s,i)=>{const b=document.createElement("button");b.className="song"+(i==sel?" on":"");b.innerHTML=s[0]+"<small>"+(s[2]||s[1]).length+" notas"+(s[2]?" · importada":"")+"</small>";b.onclick=()=>{sel=i;list();$("go").disabled=false};sg.appendChild(b)})}list();
+/* lições */
+const LS=[["Conheça o Dó","O Dó é a tecla branca à esquerda do grupo de 2 pretas.",[1,1,1,1,1,1]],
+["Dó e Ré","Duas teclas vizinhas.",[1,2,1,2,2,1,1,2]],
+["Dó, Ré e Mi","Três teclas seguidas, subindo e descendo.",[1,2,3,2,1,3,2,1,3,3]],
+["Dó a Sol","As cinco notas da mão direita, uma por dedo.",[1,2,3,4,5,4,3,2,1]],
+["Saltos curtos","Pule uma tecla.",[1,3,2,4,3,5,4,2,1]],
+["Repetindo notas","Toque a mesma nota mais de uma vez.",[3,3,3,2,2,2,1,1,1,3,3,2,2,1]],
+["Hot Cross Buns","Sua primeira música.",[3,2,1,3,2,1,1,1,1,1,2,2,2,2,3,2,1]],
+["Lá e Si","Duas notas novas, mais agudas.",[5,6,7,6,5,6,7,6,5]],
+["A escala inteira","Dó a Si e de volta.",[1,2,3,4,5,6,7,6,5,4,3,2,1]],
+["Mary Had a Little Lamb","Música tradicional.",[3,2,1,2,3,3,3,2,2,2,3,5,5,3,2,1,2,3,3,3,3,2,2,3,2,1]],
+["Brilha, Brilha, Estrelinha","Com um salto de quinta no começo.",[1,1,5,5,6,6,5,4,4,3,3,2,2,1]],
+["Ode à Alegria","Tema de Beethoven.",[3,3,4,5,5,4,3,2,1,1,2,3,3,2,2]],
+["Desafio: arpejos","Notas do acorde de Dó.",[1,3,5,3,1,5,3,1,3,5,6,5,3,1]]];
+let ls=-1,prog={};try{prog=JSON.parse(localStorage.thProg||"{}")}catch(e){}
+function llist(){const L=$("lessons");L.innerHTML="";LS.forEach((l,i)=>{const op=i==0||(prog[i-1]||0)>=3,b=document.createElement("button");b.className="song"+(i==ls?" on":"");b.disabled=!op;b.style.opacity=op?1:.45;b.innerHTML=(i+1)+". "+l[0]+"<small>"+(op?l[1]:"🔒 Complete a anterior com 3 estrelas")+"</small><small style='color:var(--am)'>"+"★".repeat(prog[i]||0)+"</small>";b.onclick=()=>{ls=i;llist();$("go").disabled=false};L.appendChild(b)})}llist();
 /* importar MIDI: pega a melodia (nota mais aguda da faixa principal) */
 function parseMid(bf){const u=new Uint8Array(bf),v=new DataView(bf);if(String.fromCharCode(...u.slice(0,4))!="MThd")throw 0;const nt=v.getUint16(10),dv=v.getUint16(12),tp=[],tr=[];let p=8+v.getUint32(4);
 const rv=()=>{let x=0,b;do{b=u[p++];x=x<<7|b&127}while(b&128);return x};
@@ -61,7 +77,7 @@ const sv=()=>{try{localStorage.thSongs=JSON.stringify(S.slice(8));return 1}catch
 $("mf").onchange=async e=>{let ok=0,bad=0;for(const f of e.target.files){try{if(/\.json$/i.test(f.name)){JSON.parse(await f.text()).forEach(x=>{S.push(x);ok++})}else{S.push([f.name.replace(/\.midi?$/i,""),[],parseMid(await f.arrayBuffer())]);ok++}}catch(x){bad++}}
 if(ok){sel=S.length-1;$("go").disabled=false}list();$("err").textContent=ok+" música(s) importada(s)."+(bad?" "+bad+" não deu para ler.":"")+(ok&&!sv()?" Atenção: este navegador não guarda músicas aqui. Use Exportar minhas músicas para salvar em arquivo.":"");e.target.value=""};
 $("ex").onclick=()=>{if(S.length<=8){$("err").textContent="Ainda não há músicas importadas para exportar.";return}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S.slice(8))],{type:"application/json"}));a.download="minhas-musicas.json";a.click()};
-document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x==b));$("mdesc").textContent={wait:"A música espera você tocar a nota certa. Ideal para aprender.",fall:"As notas caem no ritmo e você toca na hora certa, com pontos e combo.",free:"Toque à vontade, sem música nem pontos. Use ● Gravar para guardar o que tocar como uma música nova."}[mode];sg.style.display=mode=="free"?"none":"";$("go").disabled=mode!="free"&&sel<0});
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x==b));$("mdesc").textContent={learn:"Lições passo a passo. Complete uma com 3 estrelas para liberar a próxima.",wait:"A música espera você tocar a nota certa. Ideal para aprender.",fall:"As notas caem no ritmo e você toca na hora certa, com pontos e combo.",free:"Toque à vontade, sem música nem pontos. Use ● Gravar para guardar o que tocar como uma música nova."}[mode];sg.style.display=mode=="free"||mode=="learn"?"none":"";$("lessons").style.display=mode=="learn"?"":"none";$("go").disabled=mode=="learn"?ls<0:mode!="free"&&sel<0});
 document.querySelectorAll("[data-in]").forEach(b=>b.onclick=()=>{inp=b.dataset.in;document.querySelectorAll("[data-in]").forEach(x=>x.classList.toggle("on",x==b));$("thw").style.display=inp=="mic"?"":"none";$("ao").checked=false});
 /* áudio: som de corda (só quando não é o microfone) */
 let ac;function pluck(m){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume();const f=440*2**((m-69)/12),sr=ac.sampleRate,n=sr*1.3|0,b=ac.createBuffer(1,n,sr),d=b.getChannelData(0),p=Math.max(2,Math.round(sr/f));for(let i=0;i<p;i++)d[i]=Math.random()*2-1;for(let i=p;i<n;i++)d[i]=.997*.5*(d[i-p]+d[i-p+1]);const s=ac.createBufferSource(),g=ac.createGain();g.gain.value=.5;s.buffer=b;s.connect(g).connect(ac.destination);s.start()}
@@ -86,23 +102,23 @@ cv.addEventListener("pointerdown",e=>{if(!G||inp!="click")return;const r=cv.getB
 let held=null,ht=0,oc=0,rec=null;const showOc=()=>{$("oc").textContent=inp=="click"?"Shift = sustenido (♯)":""};function hold(m){held=m;ht=performance.now()}
 /* jogo */
 const BEAT=60/72,WIN=.4,PERF=.18;const eq=(a,b)=>$("ao").checked?a%12==b%12:a==b;let LEAD=2.5,PX=170,SPW=72;const fit=()=>{const k=+$("lk").value;LEAD=Math.max(2.5,k);PX=LH/k;SPW=LH/(k*1.5)};
-function start(){const fr=mode=="free",ds=fr?[]:S[sel][1];G={tr:[],n:fr?[]:S[sel][2]?S[sel][2].map(x=>({m:x.m,t:x.t,h:0})):ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})),cur:0,sm:0,sc:0,cb:0,mx:0,p:0,g:0,ms:0,w:0,t0:performance.now(),done:0,fx:[]};$("menu").classList.add("hide");$("end").classList.add("hide");$("game").classList.remove("hide");size();fit();oc=0;showOc();rec=null;$("rb").style.display=mode=="free"?"":"none";$("rb").textContent="● Gravar";raf()}
+function start(){const fr=mode=="free",lr=mode=="learn",ds=fr?[]:lr?LS[ls][2]:S[sel][1];G={tr:[],n:fr?[]:lr?ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})):S[sel][2]?S[sel][2].map(x=>({m:x.m,t:x.t,h:0})):ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})),cur:0,sm:0,sc:0,cb:0,mx:0,p:0,g:0,ms:0,w:0,t0:performance.now(),done:0,fx:[]};$("menu").classList.add("hide");$("end").classList.add("hide");$("game").classList.remove("hide");size();fit();oc=0;showOc();rec=null;$("rb").style.display=mode=="free"?"":"none";$("rb").textContent="● Gravar";raf()}
 function note(m,fromClick){if(!G||G.done)return;if(fromClick)pluck(m);const g=G;held=m;ht=performance.now();if(mode=="free"){g.tr.push([m,ht]);if(rec)rec.push([m,ht]);return}
-if(mode=="wait"){const n=g.n[g.cur];if(eq(m,n.m)){held=n.m;n.h=1;g.cur++;g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=100*(1+Math.min(3,g.cb/10|0));g.fx.push([n.m,1,performance.now()]);if(g.cur>=g.n.length)fin()}else{g.w++;g.cb=0;g.fx.push([m,0,performance.now()])}}
+if((mode=="wait"||mode=="learn")){const n=g.n[g.cur];if(eq(m,n.m)){held=n.m;n.h=1;g.cur++;g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=100*(1+Math.min(3,g.cb/10|0));g.fx.push([n.m,1,performance.now()]);if(g.cur>=g.n.length)fin()}else{g.w++;g.cb=0;g.fx.push([m,0,performance.now()])}}
 else{const t=(performance.now()-g.t0)/1e3-LEAD;let b=null;for(const n of g.n)if(!n.h&&eq(n.m,m)&&Math.abs(n.t-t)<WIN&&(!b||Math.abs(n.t-t)<Math.abs(b.t-t)))b=n;if(!b)return;const pf=Math.abs(b.t-t)<PERF;b.h=pf?1:2;held=b.m;pf?g.p++:g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=(pf?100:50)*(1+Math.min(3,g.cb/10|0));g.fx.push([b.m,1,performance.now()])}}
-function fin(){const g=G;g.done=1;setTimeout(()=>{$("game").classList.add("hide");$("end").classList.remove("hide");const tot=mode=="wait"?g.g+g.w:g.p+g.g+g.ms,hp=tot?(mode=="wait"?g.g/tot:(g.p+g.g)/tot):0,acc=tot?(mode=="wait"?g.g/tot:(g.p+.7*g.g)/tot)*100:0,st=Math.max(1,Math.min(5,Math.ceil(hp*5)));
-$("stars").innerHTML="★".repeat(st)+"<span style='color:#35466b'>"+"★".repeat(5-st)+"</span>";$("et").textContent=S[sel][0];
-$("es").innerHTML=[["Pontos",g.sc],["Combo máx",g.mx],["Precisão",acc.toFixed(0)+"%"],mode=="wait"?["Acertos",g.g]:["Perfeitas",g.p],mode=="wait"?["Erros",g.w]:["Boas",g.g],mode=="wait"?["Notas",g.n.length]:["Perdidas",g.ms]].map(a=>"<div><small class=m>"+a[0]+"</small><b>"+a[1]+"</b></div>").join("");G=null;micOff();fs(false)},600)}
+function fin(){const g=G;g.done=1;setTimeout(()=>{$("game").classList.add("hide");$("end").classList.remove("hide");const tot=(mode=="wait"||mode=="learn")?g.g+g.w:g.p+g.g+g.ms,hp=tot?((mode=="wait"||mode=="learn")?g.g/tot:(g.p+g.g)/tot):0,acc=tot?((mode=="wait"||mode=="learn")?g.g/tot:(g.p+.7*g.g)/tot)*100:0,st=Math.max(1,Math.min(5,Math.ceil(hp*5)));
+if(mode=="learn"){prog[ls]=Math.max(prog[ls]||0,st);try{localStorage.thProg=JSON.stringify(prog)}catch(e){}}$("stars").innerHTML="★".repeat(st)+"<span style='color:#35466b'>"+"★".repeat(5-st)+"</span>";$("et").textContent=(mode=="learn"?LS[ls][0]:S[sel][0])+(mode=="learn"?(st>=3?" · próxima lição liberada!":" · faça 3 estrelas para liberar a próxima"):"");
+$("es").innerHTML=[["Pontos",g.sc],["Combo máx",g.mx],["Precisão",acc.toFixed(0)+"%"],(mode=="wait"||mode=="learn")?["Acertos",g.g]:["Perfeitas",g.p],(mode=="wait"||mode=="learn")?["Erros",g.w]:["Boas",g.g],(mode=="wait"||mode=="learn")?["Notas",g.n.length]:["Perdidas",g.ms]].map(a=>"<div><small class=m>"+a[0]+"</small><b>"+a[1]+"</b></div>").join("");G=null;micOff();fs(false)},600)}
 function raf(){if(!G)return;requestAnimationFrame(raf);draw()}
 function draw(){const g=G,now=performance.now(),t=(now-g.t0)/1e3-LEAD;X.clearRect(0,0,W,H);
 for(const k of wh){X.fillStyle="rgba(255,255,255,.03)";X.fillRect(KB[k].x,0,1,LH)}
 X.fillStyle="rgba(245,166,35,.5)";X.fillRect(0,LH-2,W,3);
 const lit={},col=m=>"hsl("+(m%12)*30+" 85% 58%)";
-if(mode=="wait")g.sm+=(g.cur-g.sm)*.18;
+if((mode=="wait"||mode=="learn"))g.sm+=(g.cur-g.sm)*.18;
 X.save();X.beginPath();X.rect(0,0,W,LH);X.clip();
-const L=g.n.length,sp=mode=="wait"?72:BEAT*PX;
-for(let i=0;i<L;i++){const n=g.n[i];if(mode=="wait"&&n.h)continue;const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=mode=="wait"?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min(BEAT*.8*PX,gp-4));let y;
-if(mode=="wait"){y=LH-(i-g.sm)*SPW;if(i==g.cur)lit[n.m]=col(n.m)}else{y=LH-(n.t-t)*PX;if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(y-h<LH&&y>=LH&&n.h!=3)lit[n.m]=col(n.m)}
+const L=g.n.length,sp=(mode=="wait"||mode=="learn")?72:BEAT*PX;
+for(let i=0;i<L;i++){const n=g.n[i];if((mode=="wait"||mode=="learn")&&n.h)continue;const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=(mode=="wait"||mode=="learn")?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min(BEAT*.8*PX,gp-4));let y;
+if((mode=="wait"||mode=="learn")){y=LH-(i-g.sm)*SPW;if(i==g.cur)lit[n.m]=col(n.m)}else{y=LH-(n.t-t)*PX;if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(y-h<LH&&y>=LH&&n.h!=3)lit[n.m]=col(n.m)}
 const k=KB[n.m];if(!k||y<-h||y-h>LH)continue;const w=k.b?k.w:k.w-3,x=k.b?k.x:k.x+1.5;X.globalAlpha=n.h==3?.35:n.h?.6:1;X.fillStyle=n.h==3?"#6b3a48":col(n.m);X.beginPath();X.roundRect(x+2,y-h,w-4,h-3,[nx?0:8,nx?0:8,pv?0:8,pv?0:8]);X.fill()}
 if(mode=="free"){g.tr=g.tr.filter(x=>now-x[1]<4500);for(const[m,t0]of g.tr){const k=KB[m],a=(now-t0)/1e3,y=LH-a*150;if(!k||y<-100)continue;const w=k.b?k.w:k.w-3;X.globalAlpha=Math.max(0,1-a/3.5);X.fillStyle=col(m);X.beginPath();X.roundRect((k.b?k.x:k.x+1.5)+2,y-90,w-4,90,8);X.fill()}}
 X.restore();X.globalAlpha=1;
@@ -119,7 +135,7 @@ $("fsb").onclick=()=>fs(!gw.classList.contains("fs"));
 $("rb").onclick=()=>{if(!rec){rec=[];$("rb").textContent="■ Parar e salvar";return}const r=rec;rec=null;$("rb").textContent="● Gravar";if(r.length<2){alert("Toque pelo menos 2 notas antes de parar.");return}const t0=r[0][1],n=r.map(x=>{let m=x[0];while(m>83)m-=12;while(m<48)m+=12;return{m,t:(x[1]-t0)/1e3}});const nm=prompt("Nome da música gravada:","Minha música");if(!nm)return;S.push([nm,[],n]);const ok=sv();list();alert("Salva! "+n.length+" notas."+(ok?"":" Este navegador não guarda músicas: use Exportar minhas músicas no menu."));if(confirm("Ouvir agora?")){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();n.forEach(x=>setTimeout(()=>pluck(x.m),x.t*1e3))}};
 const launch=async()=>{$("err").textContent="";$("end").classList.add("hide");$("menu").classList.add("hide");$("game").classList.remove("hide");if($("fsc").checked)fs(true);if(inp=="mic"&&!(await mic())){$("game").classList.add("hide");$("menu").classList.remove("hide");fs(false);return}start()};
 $("go").onclick=launch;
-$("quit").onclick=()=>{G=null;rec=null;micOff();fs(false);$("game").classList.add("hide");$("menu").classList.remove("hide")};
+$("quit").onclick=()=>{llist();G=null;rec=null;micOff();fs(false);$("game").classList.add("hide");$("menu").classList.remove("hide")};
 $("again").onclick=launch;
-$("back").onclick=()=>{$("end").classList.add("hide");$("menu").classList.remove("hide")};
+$("back").onclick=()=>{llist();$("end").classList.add("hide");$("menu").classList.remove("hide")};
 </script></body></html>
