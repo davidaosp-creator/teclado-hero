@@ -22,6 +22,7 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 <div class="card"><div class="row"><b>Modo:</b><button class="g" data-mode="learn">Lições</button><button class="g on" data-mode="wait">Siga a música</button><button class="g" data-mode="fall">Cascata</button><button class="g" data-mode="free">Livre</button></div>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="fsc" checked> Tela cheia ao começar</small></label>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="ao"> Aceitar a nota em qualquer oitava</small></label>
+<label style="margin-left:8px"><small class="m"><input type="checkbox" id="ko" checked> Só acender as teclas (sem cascata)</small></label>
 <p class="m"><small class="m" id="mdesc">A música espera você tocar a nota certa. Ideal para aprender.</small></p>
 <div class="row"><b>Entrada:</b><button class="g on" data-in="mic">Microfone</button><button class="g" data-in="click">Clicar / teclado do PC</button>
 <label id="thw"><small class="m">Sensibilidade</small> <input id="thr" type="range" min=".002" max=".08" step=".001" value=".012"></label></div>
@@ -92,7 +93,7 @@ if(stb!==last){last=stb;if(stb!==null)note(stb)}else if(stb!==null&&rms>prev*1.6
 function micOff(){clearTimeout(mt);an=null;if(mst)mst.getTracks().forEach(t=>t.stop());if(mctx)mctx.close();mctx=null;stb=null}
 /* teclado na tela */
 const cv=$("cv"),X=cv.getContext("2d"),KB={},wh=[];for(let m=LO;m<=HI;m++)if(!blk(m))wh.push(m);
-let W,H,LH,WW;function size(){const r=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*r;cv.height=H*r;X.setTransform(r,0,0,r,0,0);LH=H*(gw.classList.contains("fs")?.74:(W>H*1.4?.56:.78));WW=W/wh.length;wh.forEach((m,i)=>KB[m]={x:i*WW,w:WW});for(let m=LO;m<=HI;m++)if(blk(m)){const p=KB[m-1];KB[m]={x:p.x+WW-WW*.3,w:WW*.6,b:1}}}
+let W,H,LH,WW;function size(){const r=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*r;cv.height=H*r;X.setTransform(r,0,0,r,0,0);LH=H*(KO()?.4:gw.classList.contains("fs")?.74:(W>H*1.4?.56:.78));WW=W/wh.length;wh.forEach((m,i)=>KB[m]={x:i*WW,w:WW});for(let m=LO;m<=HI;m++)if(blk(m)){const p=KB[m-1];KB[m]={x:p.x+WW-WW*.3,w:WW*.6,b:1}}}
 addEventListener("resize",()=>{if(G){size();fit()}});
 const OR=["Tab","KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight","Enter","Delete","End","PageDown","Numpad7","Numpad9","NumpadAdd","NumpadEnter"],NT=[48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83],TX=["Tab","Q","W","E","R","T","Y","U","I","O","P","´","[","↵","Del","End","PgD","7","9","+","n↵"],KM3={},LB={};OR.forEach((c,i)=>{KM3[c]=NT[i];LB[NT[i]]=TX[i]});
 const SO=["Digit1","Digit2","Digit4","Digit5","Digit6","Digit8","Digit9","Minus","Equal","Backspace","Insert","Home","NumpadDivide","NumpadMultiply","NumpadSubtract"],SN=[49,51,54,56,58,61,63,66,68,70,73,75,78,80,82],ST=["1","2","4","5","6","8","9","-","=","⌫","Ins","Hom","n/","n*","n-"];SO.forEach((c,i)=>{KM3[c]=SN[i];LB[SN[i]]=ST[i]});
@@ -101,7 +102,7 @@ addEventListener("keydown",e=>{const m0=KM3[e.code];if(G&&inp=="click")$("oc").t
 cv.addEventListener("pointerdown",e=>{if(!G||inp!="click")return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(y<LH)return;let m=null;for(let k=LO;k<=HI;k++){const q=KB[k];if(q.b&&y<H-(H-LH)*.38&&x>=q.x&&x<=q.x+q.w){m=k;break}}if(m===null)for(let k=LO;k<=HI;k++){const q=KB[k];if(!q.b&&x>=q.x&&x<q.x+q.w){m=k;break}}if(m!==null){hold(m);note(m,1)}});
 let held=null,ht=0,oc=0,rec=null;const showOc=()=>{$("oc").textContent=inp=="click"?"Shift = sustenido (♯)":""};function hold(m){held=m;ht=performance.now()}
 /* jogo */
-const BEAT=60/72,WIN=.4,PERF=.18;const eq=(a,b)=>$("ao").checked?a%12==b%12:a==b;let LEAD=2.5,PX=170,SPW=72;const fit=()=>{const k=+$("lk").value;LEAD=Math.max(2.5,k);PX=LH/k;SPW=LH/(k*1.5)};
+const BEAT=60/72,WIN=.4,PERF=.18;const KO=()=>$("ko").checked&&mode!="free";const eq=(a,b)=>$("ao").checked?a%12==b%12:a==b;let LEAD=2.5,PX=170,SPW=72;const fit=()=>{const k=+$("lk").value;LEAD=Math.max(2.5,k);PX=LH/k;SPW=LH/(k*1.5)};
 function start(){const fr=mode=="free",lr=mode=="learn",ds=fr?[]:lr?LS[ls][2]:S[sel][1];G={tr:[],n:fr?[]:lr?ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})):S[sel][2]?S[sel][2].map(x=>({m:x.m,t:x.t,h:0})):ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})),cur:0,sm:0,sc:0,cb:0,mx:0,p:0,g:0,ms:0,w:0,t0:performance.now(),done:0,fx:[]};$("menu").classList.add("hide");$("end").classList.add("hide");$("game").classList.remove("hide");size();fit();oc=0;showOc();rec=null;$("rb").style.display=mode=="free"?"":"none";$("rb").textContent="● Gravar";raf()}
 function note(m,fromClick){if(!G||G.done)return;if(fromClick)pluck(m);const g=G;held=m;ht=performance.now();if(mode=="free"){g.tr.push([m,ht]);if(rec)rec.push([m,ht]);return}
 if((mode=="wait"||mode=="learn")){const n=g.n[g.cur];if(eq(m,n.m)){held=n.m;n.h=1;g.cur++;g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=100*(1+Math.min(3,g.cb/10|0));g.fx.push([n.m,1,performance.now()]);if(g.cur>=g.n.length)fin()}else{g.w++;g.cb=0;g.fx.push([m,0,performance.now()])}}
@@ -113,14 +114,16 @@ function raf(){if(!G)return;requestAnimationFrame(raf);draw()}
 function draw(){const g=G,now=performance.now(),t=(now-g.t0)/1e3-LEAD;X.clearRect(0,0,W,H);
 for(const k of wh){X.fillStyle="rgba(255,255,255,.03)";X.fillRect(KB[k].x,0,1,LH)}
 X.fillStyle="rgba(245,166,35,.5)";X.fillRect(0,LH-2,W,3);
-const lit={},col=m=>"hsl("+(m%12)*30+" 85% 58%)";
+const lit={},col=m=>"hsl("+(m%12)*30+" 85% 58%)",pc=m=>"hsl("+(m%12)*30+" 70% 82%)";
 if((mode=="wait"||mode=="learn"))g.sm+=(g.cur-g.sm)*.18;
 X.save();X.beginPath();X.rect(0,0,W,LH);X.clip();
 const L=g.n.length,sp=(mode=="wait"||mode=="learn")?72:BEAT*PX;
-for(let i=0;i<L;i++){const n=g.n[i];if((mode=="wait"||mode=="learn")&&n.h)continue;const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=(mode=="wait"||mode=="learn")?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min(BEAT*.8*PX,gp-4));let y;
+for(let i=0;i<L;i++){const n=g.n[i];if((mode=="wait"||mode=="learn")&&n.h)continue;
+if(KO()){if(mode=="wait"||mode=="learn"){if(i==g.cur)lit[n.m]=col(n.m);else if(i==g.cur+1&&!lit[n.m])lit[n.m]=pc(n.m)}else{if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(!n.h){const d=n.t-t;if(d<.4&&d>-WIN)lit[n.m]=col(n.m);else if(d>=.4&&d<1.4&&!lit[n.m])lit[n.m]=pc(n.m)}}continue}const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=(mode=="wait"||mode=="learn")?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min(BEAT*.8*PX,gp-4));let y;
 if((mode=="wait"||mode=="learn")){y=LH-(i-g.sm)*SPW;if(i==g.cur)lit[n.m]=col(n.m)}else{y=LH-(n.t-t)*PX;if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(y-h<LH&&y>=LH&&n.h!=3)lit[n.m]=col(n.m)}
 const k=KB[n.m];if(!k||y<-h||y-h>LH)continue;const w=k.b?k.w:k.w-3,x=k.b?k.x:k.x+1.5;X.globalAlpha=n.h==3?.35:n.h?.6:1;X.fillStyle=n.h==3?"#6b3a48":col(n.m);X.beginPath();X.roundRect(x+2,y-h,w-4,h-3,[nx?0:8,nx?0:8,pv?0:8,pv?0:8]);X.fill()}
 if(mode=="free"){g.tr=g.tr.filter(x=>now-x[1]<4500);for(const[m,t0]of g.tr){const k=KB[m],a=(now-t0)/1e3,y=LH-a*150;if(!k||y<-100)continue;const w=k.b?k.w:k.w-3;X.globalAlpha=Math.max(0,1-a/3.5);X.fillStyle=col(m);X.beginPath();X.roundRect((k.b?k.x:k.x+1.5)+2,y-90,w-4,90,8);X.fill()}}
+if(KO()){const c=(mode=="wait"||mode=="learn")?g.n[g.cur]:g.n.find(n=>!n.h&&n.t>t-WIN);if(c){X.textAlign="center";X.fillStyle=col(c.m);X.font="bold "+Math.min(LH*.5,W*.18)+"px sans-serif";X.fillText(N[c.m%12]+(Math.floor(c.m/12)-1),W/2,LH*.62)}}
 X.restore();X.globalAlpha=1;
 for(const k of wh){const q=KB[k];X.fillStyle=lit[k]||(held==k&&now-ht<250?col(k):"#f3f5fa");X.fillRect(q.x+.5,LH,q.w-1,H-LH);if(inp=="click"&&LB[k]){X.fillStyle="#16213a";X.font="bold "+Math.min(14,q.w*.42)+"px sans-serif";X.textAlign="center";X.fillText(LB[k],q.x+q.w/2,H-26)}if(k%12==0){X.fillStyle="#44506b";X.font="10px sans-serif";X.textAlign="center";X.fillText(N[0]+(Math.floor(k/12)-1),q.x+q.w/2,H-6)}}
 for(let k=LO;k<=HI;k++)if(blk(k)){const q=KB[k];X.fillStyle=lit[k]||(held==k&&now-ht<250?col(k):"#16213a");X.fillRect(q.x,LH,q.w,(H-LH)*.62);if(inp=="click"&&LB[k]){X.fillStyle="#cfd8ea";X.font="bold "+Math.min(12,q.w*.8)+"px sans-serif";X.textAlign="center";X.fillText(LB[k],q.x+q.w/2,LH+(H-LH)*.5)}}
