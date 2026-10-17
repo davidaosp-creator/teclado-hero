@@ -38,16 +38,39 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 <script>
 const $=i=>document.getElementById(i),N=["Dó","Dó♯","Ré","Ré♯","Mi","Fá","Fá♯","Sol","Sol♯","Lá","Lá♯","Si"];
 const LO=48,HI=84,blk=m=>[1,3,6,8,10].includes(m%12),SC=[0,2,4,5,7,9,11];
+const R=(n,a)=>[n,[],a.map((m,i)=>({m,t:i*.8333}))];
 const S=[["Brilha, Brilha, Estrelinha",[1,1,5,5,6,6,5,4,4,3,3,2,2,1,5,5,4,4,3,3,2,5,5,4,4,3,3,2,1,1,5,5,6,6,5,4,4,3,3,2,2,1]],
 ["Mary Had a Little Lamb",[3,2,1,2,3,3,3,2,2,2,3,5,5,3,2,1,2,3,3,3,3,2,2,3,2,1]],
 ["Hot Cross Buns",[3,2,1,3,2,1,1,1,1,1,2,2,2,2,3,2,1]],
 ["London Bridge",[5,6,5,4,3,4,5,2,3,4,3,4,5,5,6,5,4,3,4,5,2,5,3,1]],
 ["Ode à Alegria",[3,3,4,5,5,4,3,2,1,1,2,3,3,2,2,3,3,4,5,5,4,3,2,1,1,2,3,2,1,1]],
 ["Lightly Row",[5,3,3,4,2,2,1,2,3,4,5,5,5,5,3,3,4,2,2,1,3,5,5,1]],
-["Treino · Escada 1–5",[1,2,3,4,5,4,3,2,1,2,3,4,5,4,3,2,1]],["Treino · Arpejo de Dó",[1,3,5,3,1,3,5,3,1,3,5,3,1]]];
+["Treino · Escada 1–5",[1,2,3,4,5,4,3,2,1,2,3,4,5,4,3,2,1]],["Treino · Arpejo de Dó",[1,3,5,3,1,3,5,3,1,3,5,3,1]],
+/* repertório fácil */
+R("Parabéns pra Você",[67,67,69,67,72,71,67,67,69,67,74,72,67,67,79,76,72,71,69,77,77,76,72,74,72]),
+R("Row, Row, Row Your Boat",[60,60,60,62,64,64,62,64,65,67,72,72,72,67,67,67,64,64,64,60,60,60,67,65,64,62,60]),
+R("Frère Jacques (completa)",[60,62,64,60,60,62,64,60,64,65,67,64,65,67,67,69,67,65,64,60,67,69,67,65,64,60,60,55,60,60,55,60]),
+["Oh! Susanna",[1,2,3,5,5,6,5,3,1,2,3,3,2,1,2,1,2,3,5,5,6,5,3,1,2,3,3,2,2,1]],
+["Old MacDonald",[1,1,1,5,6,6,5,3,3,2,2,1,1,1,1,5,6,6,5,3,3,2,2,1]],
+["Au Clair de la Lune",[1,1,1,2,3,2,1,3,2,2,1,1,1,1,2,3,2,1,3,2,2,1]],
+R("Dona Aranha (primeira frase)",[67,72,72,72,74,76,76,76,74,72,74,76,72]),
+["Passarinho (original)",[3,5,3,5,6,5,3,1,2,3,2,1]],
+["Chuva fina (original)",[5,3,5,3,4,2,4,2,3,1,3,2,1]],
+["Sol nascente (original)",[1,2,3,5,5,3,2,1,2,3,5,6,5,3,2,1]],
+["Barquinho (original)",[1,3,1,3,5,3,5,6,5,3,1,2,1]],
+["Trenzinho (original)",[1,1,2,2,3,3,2,2,1,1,3,3,5,5,3,1]],
+["Pipa no céu (original)",[1,3,5,6,5,3,1,3,5,6,7,6,5,3,1]],
+["Ladeira (original)",[5,4,3,2,1,2,3,4,5,4,3,2,1,3,5]],
+["Lua cheia (original)",[6,5,3,5,6,5,3,2,3,5,3,2,1]],
+["Pulo do gato (original)",[1,5,1,5,2,6,2,6,3,7,3,5,1]],
+["Cantiga de ninar (original)",[3,1,3,5,5,3,5,6,5,3,1,2,1]],
+["Vai e volta (original)",[1,2,3,2,1,2,3,4,3,2,3,4,5,4,3,2,1]],
+["Estrada de terra (original)",[1,1,3,3,5,5,3,3,4,4,2,2,5,5,1]],
+["Bailarina (original)",[5,3,5,6,5,3,5,3,5,6,7,6,5,3,2,1]]];
+const NB=S.length;
 const mm=d=>60+SC[d-1];let mode="wait",inp="mic",sel=-1,G=null;
 const sg=$("songs");try{JSON.parse(localStorage.thSongs||"[]").forEach(x=>S.push(x))}catch(e){}
-function list(){sg.innerHTML="";S.forEach((s,i)=>{const b=document.createElement("button");b.className="song"+(i==sel?" on":"");b.innerHTML=s[0]+"<small>"+(s[2]||s[1]).length+" notas"+(s[2]?" · importada":"")+"</small>";b.onclick=()=>{sel=i;list();$("go").disabled=false};sg.appendChild(b)})}list();
+function list(){sg.innerHTML="";S.forEach((s,i)=>{const b=document.createElement("button");b.className="song"+(i==sel?" on":"");b.innerHTML=s[0]+"<small>"+(s[2]||s[1]).length+" notas"+(s[2]&&i>=NB?" · importada":"")+"</small>";b.onclick=()=>{sel=i;list();$("go").disabled=false};sg.appendChild(b)})}list();
 /* lições */
 const LS=[["Conheça o Dó","O Dó é a tecla branca à esquerda do grupo de 2 pretas.",[1,1,1,1,1,1]],
 ["Dó e Ré","Duas teclas vizinhas.",[1,2,1,2,2,1,1,2]],
@@ -74,10 +97,10 @@ tr.sort((a,b)=>b.filter(n=>n[1]>=55).length-a.filter(n=>n[1]>=55).length);const 
 let o=Object.keys(by).map(Number).sort((a,b)=>a-b).map(t=>({t:sec(t),m:by[t]}));if(o.length<4)throw 0;
 const io=o.slice(1).map((x,i)=>x.t-o[i].t).sort((a,b)=>a-b),f=Math.max(1,.55/(io[io.length>>1]||.5)),t0=o[0].t;
 return o.slice(0,150).map(x=>{let m=x.m;while(m>83)m-=12;while(m<48)m+=12;return{m,t:(x.t-t0)*f}})}
-const sv=()=>{try{localStorage.thSongs=JSON.stringify(S.slice(8));return 1}catch(x){return 0}};
+const sv=()=>{try{localStorage.thSongs=JSON.stringify(S.slice(NB));return 1}catch(x){return 0}};
 $("mf").onchange=async e=>{let ok=0,bad=0;for(const f of e.target.files){try{if(/\.json$/i.test(f.name)){JSON.parse(await f.text()).forEach(x=>{S.push(x);ok++})}else{S.push([f.name.replace(/\.midi?$/i,""),[],parseMid(await f.arrayBuffer())]);ok++}}catch(x){bad++}}
 if(ok){sel=S.length-1;$("go").disabled=false}list();$("err").textContent=ok+" música(s) importada(s)."+(bad?" "+bad+" não deu para ler.":"")+(ok&&!sv()?" Atenção: este navegador não guarda músicas aqui. Use Exportar minhas músicas para salvar em arquivo.":"");e.target.value=""};
-$("ex").onclick=()=>{if(S.length<=8){$("err").textContent="Ainda não há músicas importadas para exportar.";return}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S.slice(8))],{type:"application/json"}));a.download="minhas-musicas.json";a.click()};
+$("ex").onclick=()=>{if(S.length<=NB){$("err").textContent="Ainda não há músicas importadas para exportar.";return}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S.slice(NB))],{type:"application/json"}));a.download="minhas-musicas.json";a.click()};
 document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x==b));$("mdesc").textContent={learn:"Lições passo a passo. Complete uma com 3 estrelas para liberar a próxima.",wait:"A música espera você tocar a nota certa. Ideal para aprender.",fall:"As notas caem no ritmo e você toca na hora certa, com pontos e combo.",free:"Toque à vontade, sem música nem pontos. Use ● Gravar para guardar o que tocar como uma música nova."}[mode];sg.style.display=mode=="free"||mode=="learn"?"none":"";$("lessons").style.display=mode=="learn"?"":"none";$("go").disabled=mode=="learn"?ls<0:mode!="free"&&sel<0});
 document.querySelectorAll("[data-in]").forEach(b=>b.onclick=()=>{inp=b.dataset.in;document.querySelectorAll("[data-in]").forEach(x=>x.classList.toggle("on",x==b));$("thw").style.display=inp=="mic"?"":"none";$("ao").checked=false});
 /* áudio: som de corda (só quando não é o microfone) */
