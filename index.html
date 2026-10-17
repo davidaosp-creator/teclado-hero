@@ -27,9 +27,10 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 <div class="row"><b>Entrada:</b><button class="g on" data-in="mic">Microfone</button><button class="g" data-in="click">Clicar / teclado do PC</button>
 <label id="thw"><small class="m">Sensibilidade</small> <input id="thr" type="range" min=".002" max=".08" step=".001" value=".012"></label></div>
 <div class="row" style="margin-top:8px"><b>Tempo de antecedência:</b><input id="lk" type="range" min="2" max="8" step=".5" value="4"><small class="m" id="lkv">4 s</small></div><p><small class="m">Quanto maior, mais cedo a nota aparece e mais tempo você tem para achar a tecla. As notas descem mais devagar.</small></p>
+<div class="row" style="margin-top:8px"><b>Velocidade:</b><input id="tp" type="range" min="50" max="150" step="10" value="100"><small class="m" id="tpv">100%</small><small class="m">(vale para Cascata e para Ouvir)</small></div>
 <p><small class="m" id="idesc">Aponte o microfone do PC para o alto-falante do teclado. Toque uma nota por vez. Teclas do PC, uma linha reta de 21 teclas brancas (3 oitavas): Tab Q W E R T Y U I O P ´ [ Enter Delete End PageDown 7 9 + e Enter do teclado numérico = Dó3 a Si5 (a tecla 8 do numérico é pulada; deixe o Num Lock ligado). Teclas pretas (♯) na fileira de cima: 1 2 4 5 6 8 9 - = Backspace Insert Home / * - (as do teclado numérico). Shift+tecla branca também faz o ♯.</small></p></div>
 <div class="card"><b>Escolha a música</b><div class="songs" id="songs" style="margin-top:10px"></div><div class="songs" id="lessons" style="margin-top:10px;display:none"></div>
-<p style="margin:14px 0 0"><button id="go" disabled>Começar</button> <label class="g" style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer">Importar MIDI<input id="mf" type="file" accept=".mid,.midi,.json" multiple hidden></label> <button class="g" id="ex" type="button">Exportar minhas músicas</button> <small class="m" id="err"></small></p></div></div>
+<p style="margin:14px 0 0"><button id="go" disabled>Começar</button> <button class="g" id="ou">▶ Ouvir</button> <label class="g" style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer">Importar MIDI<input id="mf" type="file" accept=".mid,.midi,.json" multiple hidden></label> <button class="g" id="ex" type="button">Exportar minhas músicas</button> <small class="m" id="err"></small></p></div></div>
 <div id="game" class="hide"><div id="gw"><canvas id="cv"></canvas><div class="hud"><b id="sc">0</b><span id="cb">COMBO 0</span><span id="oc" style="display:block;margin-top:4px"></span></div>
 <button class="g" id="rb" style="position:absolute;right:200px;top:10px;display:none">● Gravar</button><button class="g" id="fsb" style="position:absolute;right:78px;top:10px">⛶ Tela cheia</button><button class="g" id="quit" style="position:absolute;right:12px;top:10px">Sair</button></div></div>
 <div id="end" class="card hide"><div class="big" id="stars"></div><h2 id="et" style="text-align:center;margin:0"></h2><div class="grid" id="es"></div>
@@ -69,6 +70,14 @@ R("Dona Aranha (primeira frase)",[67,72,72,72,74,76,76,76,74,72,74,76,72]),
 ["Bailarina (original)",[5,3,5,6,5,3,5,3,5,6,7,6,5,3,2,1]]];
 const NB=S.length;
 const mm=d=>60+SC[d-1];let mode="wait",inp="mic",sel=-1,G=null;
+const RH={"Brilha, Brilha, Estrelinha":[1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2],
+"Mary Had a Little Lamb":[1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,4],
+"Hot Cross Buns":[1,1,2,1,1,2,.5,.5,.5,.5,.5,.5,.5,.5,1,1,2],
+"Ode à Alegria":[1,1,1,1,1,1,1,1,1,1,1,1,1.5,.5,2,1,1,1,1,1,1,1,1,1,1,1,1,1.5,.5,2],
+"London Bridge":[1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,1,2],
+"Parabéns pra Você":[.75,.25,1,1,1,2,.75,.25,1,1,1,2,.75,.25,1,1,1,1,2,.75,.25,1,1,1,3],
+"Frère Jacques (completa)":[1,1,1,1,1,1,1,1,1,1,2,1,1,2,.5,.5,.5,.5,1,1,.5,.5,.5,.5,1,1,1,1,2,1,1,2]};
+S.forEach(x=>{const d=RH[x[0]];if(!d)return;const b=x[2]||x[1].map(g=>({m:mm(g)}));let c=0;x[2]=b.map((n,i)=>{const o={m:n.m,t:c*.8333,len:d[i]*.8333};c+=d[i];return o})});
 const sg=$("songs");try{JSON.parse(localStorage.thSongs||"[]").forEach(x=>S.push(x))}catch(e){}
 function list(){sg.innerHTML="";S.forEach((s,i)=>{const b=document.createElement("button");b.className="song"+(i==sel?" on":"");b.innerHTML=s[0]+"<small>"+(s[2]||s[1]).length+" notas"+(s[2]&&i>=NB?" · importada":"")+"</small>";b.onclick=()=>{sel=i;list();$("go").disabled=false};sg.appendChild(b)})}list();
 /* lições */
@@ -126,7 +135,7 @@ cv.addEventListener("pointerdown",e=>{if(!G||inp!="click")return;const r=cv.getB
 let held=null,ht=0,oc=0,rec=null;const showOc=()=>{$("oc").textContent=inp=="click"?"Shift = sustenido (♯)":""};function hold(m){held=m;ht=performance.now()}
 /* jogo */
 const BEAT=60/72,WIN=.4,PERF=.18;const KO=()=>$("ko").checked&&mode!="free";const eq=(a,b)=>$("ao").checked?a%12==b%12:a==b;let LEAD=2.5,PX=170,SPW=72;const fit=()=>{const k=+$("lk").value;LEAD=Math.max(2.5,k);PX=LH/k;SPW=LH/(k*1.5)};
-function start(){const fr=mode=="free",lr=mode=="learn",ds=fr?[]:lr?LS[ls][2]:S[sel][1];G={tr:[],n:fr?[]:lr?ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})):S[sel][2]?S[sel][2].map(x=>({m:x.m,t:x.t,h:0})):ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})),cur:0,sm:0,sc:0,cb:0,mx:0,p:0,g:0,ms:0,w:0,t0:performance.now(),done:0,fx:[]};$("menu").classList.add("hide");$("end").classList.add("hide");$("game").classList.remove("hide");size();fit();oc=0;showOc();rec=null;$("rb").style.display=mode=="free"?"":"none";$("rb").textContent="● Gravar";raf()}
+function start(){const fr=mode=="free",lr=mode=="learn",ds=fr?[]:lr?LS[ls][2]:S[sel][1];G={tr:[],n:fr?[]:lr?ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})):S[sel][2]?S[sel][2].map(x=>({m:x.m,t:x.t,len:x.len,h:0})):ds.map((d,i)=>({m:mm(d),t:i*BEAT,h:0})),cur:0,sm:0,sc:0,cb:0,mx:0,p:0,g:0,ms:0,w:0,t0:performance.now(),done:0,fx:[]};if(mode=="fall"){const f=100/+$("tp").value;G.n.forEach(n=>{n.t*=f;if(n.len)n.len*=f})}$("menu").classList.add("hide");$("end").classList.add("hide");$("game").classList.remove("hide");size();fit();oc=0;showOc();rec=null;$("rb").style.display=mode=="free"?"":"none";$("rb").textContent="● Gravar";raf()}
 function note(m,fromClick){if(!G||G.done)return;if(fromClick)pluck(m);const g=G;held=m;ht=performance.now();if(mode=="free"){g.tr.push([m,ht]);if(rec)rec.push([m,ht]);return}
 if((mode=="wait"||mode=="learn")){const n=g.n[g.cur];if(eq(m,n.m)){held=n.m;n.h=1;g.cur++;g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=100*(1+Math.min(3,g.cb/10|0));g.fx.push([n.m,1,performance.now()]);if(g.cur>=g.n.length)fin()}else{g.w++;g.cb=0;g.fx.push([m,0,performance.now()])}}
 else{const t=(performance.now()-g.t0)/1e3-LEAD;let b=null;for(const n of g.n)if(!n.h&&eq(n.m,m)&&Math.abs(n.t-t)<WIN&&(!b||Math.abs(n.t-t)<Math.abs(b.t-t)))b=n;if(!b)return;const pf=Math.abs(b.t-t)<PERF;b.h=pf?1:2;held=b.m;pf?g.p++:g.g++;g.cb++;g.mx=Math.max(g.mx,g.cb);g.sc+=(pf?100:50)*(1+Math.min(3,g.cb/10|0));g.fx.push([b.m,1,performance.now()])}}
@@ -142,7 +151,7 @@ if((mode=="wait"||mode=="learn"))g.sm+=(g.cur-g.sm)*.18;
 X.save();X.beginPath();X.rect(0,0,W,LH);X.clip();
 const L=g.n.length,sp=(mode=="wait"||mode=="learn")?72:BEAT*PX;
 for(let i=0;i<L;i++){const n=g.n[i];if((mode=="wait"||mode=="learn")&&n.h)continue;
-if(KO()){if(mode=="wait"||mode=="learn"){if(i==g.cur)lit[n.m]=col(n.m);}else{if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(!n.h){const d=n.t-t;if(d<.4&&d>-WIN)lit[n.m]=col(n.m);}}continue}const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=(mode=="wait"||mode=="learn")?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min(BEAT*.8*PX,gp-4));let y;
+if(KO()){if(mode=="wait"||mode=="learn"){if(i==g.cur)lit[n.m]=col(n.m);}else{if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(!n.h){const d=n.t-t;if(d<.4&&d>-WIN)lit[n.m]=col(n.m);}}continue}const pv=i>0&&g.n[i-1].m==n.m,nx=i<L-1&&g.n[i+1].m==n.m,gp=(i<L-1?g.n[i+1].t-n.t:BEAT)*PX,h=(mode=="wait"||mode=="learn")?(pv||nx?SPW:SPW*.83):(pv||nx?gp:Math.min((n.len||BEAT)*.85*PX,gp-4));let y;
 if((mode=="wait"||mode=="learn")){y=LH-(i-g.sm)*SPW;if(i==g.cur)lit[n.m]=col(n.m)}else{y=LH-(n.t-t)*PX;if(!n.h&&t-n.t>WIN){n.h=3;g.ms++;g.cb=0}if(y-h<LH&&y>=LH&&n.h!=3)lit[n.m]=col(n.m)}
 const k=KB[n.m];if(!k||y<-h||y-h>LH)continue;const w=k.b?k.w:k.w-3,x=k.b?k.x:k.x+1.5;X.globalAlpha=n.h==3?.35:n.h?.6:1;X.fillStyle=n.h==3?"#6b3a48":col(n.m);X.beginPath();X.roundRect(x+2,y-h,w-4,h-3,[nx?0:8,nx?0:8,pv?0:8,pv?0:8]);X.fill()}
 if(mode=="free"){g.tr=g.tr.filter(x=>now-x[1]<4500);for(const[m,t0]of g.tr){const k=KB[m],a=(now-t0)/1e3,y=LH-a*150;if(!k||y<-100)continue;const w=k.b?k.w:k.w-3;X.globalAlpha=Math.max(0,1-a/3.5);X.fillStyle=col(m);X.beginPath();X.roundRect((k.b?k.x:k.x+1.5)+2,y-90,w-4,90,8);X.fill()}}
@@ -161,6 +170,11 @@ $("fsb").onclick=()=>fs(!gw.classList.contains("fs"));
 $("rb").onclick=()=>{if(!rec){rec=[];$("rb").textContent="■ Parar e salvar";return}const r=rec;rec=null;$("rb").textContent="● Gravar";if(r.length<2){alert("Toque pelo menos 2 notas antes de parar.");return}const t0=r[0][1],n=r.map(x=>{let m=x[0];while(m>83)m-=12;while(m<48)m+=12;return{m,t:(x[1]-t0)/1e3}});const nm=prompt("Nome da música gravada:","Minha música");if(!nm)return;S.push([nm,[],n]);const ok=sv();list();alert("Salva! "+n.length+" notas."+(ok?"":" Este navegador não guarda músicas: use Exportar minhas músicas no menu."));if(confirm("Ouvir agora?")){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();n.forEach(x=>setTimeout(()=>pluck(x.m),x.t*1e3))}};
 const launch=async()=>{$("err").textContent="";$("end").classList.add("hide");$("menu").classList.add("hide");$("game").classList.remove("hide");if($("fsc").checked)fs(true);if(inp=="mic"&&!(await mic())){$("game").classList.add("hide");$("menu").classList.remove("hide");fs(false);return}start()};
 $("go").onclick=launch;
+let pl=[];$("tp").oninput=()=>$("tpv").textContent=$("tp").value+"%";
+$("ou").onclick=()=>{if(pl.length){pl.forEach(clearTimeout);pl=[];$("ou").textContent="▶ Ouvir";return}
+let ns=null;if(mode=="learn"&&ls>=0)ns=LS[ls][2].map((d,i)=>({m:mm(d),t:i*BEAT}));else if(mode!="learn"&&sel>=0){const x=S[sel];ns=x[2]||x[1].map((d,i)=>({m:mm(d),t:i*BEAT}))}
+if(!ns){$("err").textContent="Escolha uma música (ou lição) para ouvir.";return}
+$("err").textContent="";const f=100/+$("tp").value;$("ou").textContent="■ Parar";ns.forEach(n=>pl.push(setTimeout(()=>pluck(n.m),n.t*f*1e3)));pl.push(setTimeout(()=>{pl=[];$("ou").textContent="▶ Ouvir"},(ns[ns.length-1].t*f+1.5)*1e3))};
 $("quit").onclick=()=>{llist();G=null;rec=null;micOff();fs(false);$("game").classList.add("hide");$("menu").classList.remove("hide")};
 $("again").onclick=launch;
 $("back").onclick=()=>{llist();$("end").classList.add("hide");$("menu").classList.remove("hide")};
