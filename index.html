@@ -18,19 +18,17 @@ button.g{background:0;color:var(--tx);border:1px solid var(--line);font-weight:5
 .big{font-size:56px;color:var(--am);text-align:center;font-weight:800}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.grid div{background:#0e1a30;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}.grid b{display:block;font-size:24px}
 @media(orientation:landscape)and(max-height:650px){main{padding:8px}h1,.sub{display:none}canvas{height:calc(100vh - 16px)}}#gw.fs,#gw:fullscreen{position:fixed;inset:0;z-index:9;border-radius:0;border:0;background:#0a1224}#gw.fs canvas,#gw:fullscreen canvas{height:100vh;height:100dvh}.hide{display:none}small.m{color:var(--mu)}
 </style></head><body><main>
-<h1>TECLADO<span>//</span>HERO</h1><p class="sub">Toque as notas que caem. Funciona com o microfone, clicando nas teclas ou com o teclado do PC.</p>
+<h1>TECLADO<span>//</span>HERO</h1><p class="sub">Toque as notas que caem. Funciona clicando nas teclas ou com o teclado do PC.</p>
 <div id="menu">
 <div class="card"><div class="row"><b>Modo:</b><button class="g" data-mode="learn">Lições</button><button class="g on" data-mode="wait">Siga a música</button><button class="g" data-mode="fall">Cascata</button><button class="g" data-mode="free">Livre</button></div>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="fsc" checked> Tela cheia ao começar</small></label>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="ao"> Aceitar a nota em qualquer oitava</small></label>
 <label style="margin-left:8px"><small class="m"><input type="checkbox" id="ko" checked> Só acender as teclas (sem cascata)</small></label>
 <p class="m"><small class="m" id="mdesc">A música espera você tocar a nota certa. Ideal para aprender.</small></p>
-<div class="row"><b>Entrada:</b><button class="g on" data-in="mic">Microfone</button><button class="g" data-in="click">Clicar / teclado do PC</button>
-<label id="thw"><small class="m">Sensibilidade</small> <input id="thr" type="range" min=".002" max=".08" step=".001" value=".012"></label></div>
 <div class="row" style="margin-top:8px"><b>Tempo de antecedência:</b><input id="lk" type="range" min="2" max="8" step=".5" value="4"><small class="m" id="lkv">4 s</small></div><p><small class="m">Quanto maior, mais cedo a nota aparece e mais tempo você tem para achar a tecla. As notas descem mais devagar.</small></p>
 <div class="row" style="margin-top:8px"><b>Simplificar:</b><select id="sp"><option value="0">Original</option><option value="1">Sem enfeites</option><option value="2">Mais simples</option><option value="3">Só o essencial</option></select><small class="m" id="spn"></small><small class="m">(vale para músicas importadas ou gravadas)</small></div>
 <div class="row" style="margin-top:8px"><b>Velocidade:</b><input id="tp" type="range" min="50" max="150" step="10" value="100"><small class="m" id="tpv">100%</small><small class="m">(vale para Cascata e para Ouvir)</small></div>
-<p><small class="m" id="idesc">Aponte o microfone do PC para o alto-falante do teclado. Toque uma nota por vez. Teclas do PC, uma linha reta de 21 teclas brancas (3 oitavas): Tab Q W E R T Y U I O P ´ [ Enter Delete End PageDown 7 9 + e Enter do teclado numérico = Dó3 a Si5 (a tecla 8 do numérico é pulada; deixe o Num Lock ligado). Teclas pretas (♯) na fileira de cima: 1 2 4 5 6 8 9 - = Backspace Insert Home / * - (as do teclado numérico). Shift+tecla branca também faz o ♯.</small></p></div>
+<p><small class="m" id="idesc">Teclas do PC, uma linha reta de 21 teclas brancas (3 oitavas): Tab Q W E R T Y U I O P ´ [ Enter Delete End PageDown 7 9 + e Enter do teclado numérico = Dó3 a Si5 (a tecla 8 do numérico é pulada; deixe o Num Lock ligado). Teclas pretas (♯) na fileira de cima: 1 2 4 5 6 8 9 - = Backspace Insert Home / * - (as do teclado numérico). Shift+tecla branca também faz o ♯.</small></p></div>
 <div class="card"><b>Escolha a música</b><div class="songs" id="songs" style="margin-top:10px"></div><div class="songs" id="lessons" style="margin-top:10px;display:none"></div>
 <p style="margin:14px 0 0"><button id="go" disabled>Começar</button> <button class="g" id="ou">▶ Ouvir</button> <label class="g" style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer">Importar MIDI<input id="mf" type="file" accept=".mid,.midi,.json" multiple hidden></label> <button class="g" id="ex" type="button">Exportar minhas músicas</button> <small class="m" id="err"></small></p></div></div>
 <div id="game" class="hide"><div id="gw"><canvas id="cv"></canvas><div class="hud"><b id="sc">0</b><span id="cb">COMBO 0</span><span id="oc" style="display:block;margin-top:4px"></span></div>
@@ -71,7 +69,7 @@ R("Dona Aranha (primeira frase)",[67,72,72,72,74,76,76,76,74,72,74,76,72]),
 ["Estrada de terra (original)",[1,1,3,3,5,5,3,3,4,4,2,2,5,5,1]],
 ["Bailarina (original)",[5,3,5,6,5,3,5,3,5,6,7,6,5,3,2,1]]];
 const NB=S.length;
-const mm=d=>60+SC[d-1];let mode="wait",inp="mic",sel=-1,G=null;
+const mm=d=>60+SC[d-1];let mode="wait",inp="click",sel=-1,G=null;
 const RH={"Brilha, Brilha, Estrelinha":[1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,2],
 "Mary Had a Little Lamb":[1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,4],
 "Hot Cross Buns":[1,1,2,1,1,2,.5,.5,.5,.5,.5,.5,.5,.5,1,1,2],
